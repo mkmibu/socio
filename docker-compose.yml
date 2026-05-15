@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "5000:5000"
+    environment:
+      - NODE_ENV=development
+      - MONGODB_URI=mongodb://mongo:27017/sociaboost
+      - JWT_SECRET=${JWT_SECRET:-your_super_secret_jwt_key}
+      - MIDTRANS_SERVER_KEY=${MIDTRANS_SERVER_KEY}
+      - MIDTRANS_CLIENT_KEY=${MIDTRANS_CLIENT_KEY}
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+      - /app/node_modules
+    networks:
+      - sociaboost
+
+  mongo:
+    image: mongo:6-alpine
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_DATABASE=sociaboost
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      - sociaboost
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mongo_data:
+
+networks:
+  sociaboost:
+    driver: bridge
